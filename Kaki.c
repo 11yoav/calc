@@ -7,18 +7,18 @@ typedef struct {
     int num1, num2, num3;
     char op1, op2;
     int intake;
-} input;
+} Input;
 
 typedef enum {
     PRIORITY_SAME = 1,   
     PRIORITY_LEFT = 2,   
     PRIORITY_RIGHT = 3   
-} Priority;
+} EPriority;
 
 
 
-input GetInput(){
-    input ui  = {0};  
+Input GetInput(){
+    Input ui  = {0};  
 
     ui.intake = scanf("%d %c %d", &ui.num1, &ui.op1, &ui.num2);
     if (ui.intake != 3) return ui;
@@ -33,19 +33,19 @@ input GetInput(){
 
 
 
-double calc(double a, double b, char op, int *err){   
+double CalcFor2(double a, double b, char op, int *err){   
     *err = 0;
     switch (op) {
     case '+': return a + b;
     case '-': return a - b;
     case '*': return a * b;   
     case '/': if (b == 0) {
-        printf("no dividing by 0 ERROR! ");
+        fprintf(stderr, "Error: no division by zero!\n");
         *err = 1;
         return 0;}
             
         return a / b;
-    default: printf("Bad op!"); 
+    default: fprintf(stderr, "Error: '%c' is an invalid operator\n", op);
         *err = 1;
         return 0;}
     }
@@ -53,7 +53,7 @@ double calc(double a, double b, char op, int *err){
 
 
 
-Priority check(char op1, char op2) {
+EPriority CheckPriority(char op1, char op2) {
     int val1 = 1;
     int val2 = 1;
 
@@ -69,31 +69,32 @@ Priority check(char op1, char op2) {
 }
 
 
-double Final_Calc(input data, int *err) {
+double FinalCalc(Input data, int *err) {
     double res;
+    int short_intake = 3;
     
-    if (data.intake == 3) return calc(data.num1, data.num2, data.op1, err);
+    if (data.intake == short_intake) return CalcFor2(data.num1, data.num2, data.op1, err);
     
-    Priority order = check(data.op1, data.op2);
+    EPriority order = CheckPriority(data.op1, data.op2);
     
     if (order == PRIORITY_SAME || order == PRIORITY_LEFT) {   
-        res = calc(data.num1, data.num2, data.op1, err);
+        res = CalcFor2(data.num1, data.num2, data.op1, err);
         if (*err) return 0;
-        return calc(res, data.num3, data.op2, err);}
+        return CalcFor2(res, data.num3, data.op2, err);}
     
     else {
-        res = calc(data.num2, data.num3, data.op2, err);
+        res = CalcFor2(data.num2, data.num3, data.op2, err);
         if (*err) return 0;
-        return calc(data.num1, res, data.op1, err);}
+        return CalcFor2(data.num1, res, data.op1, err);}
     }
 
 
 
 int main() {
     int err = 0; 
-    input myData = GetInput();
+    Input myData = GetInput();
     if (myData.intake < 3)  return 1;
-    double Fres = Final_Calc(myData, &err);
+    double Fres = FinalCalc(myData, &err);
     if (err) return 1;
     printf("Result: %d\n", (int)round(Fres));
     return 0;
