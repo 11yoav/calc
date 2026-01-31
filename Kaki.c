@@ -1,11 +1,21 @@
 #include <stdio.h>
 #include <math.h>
 
+
+
 typedef struct {
     int num1, num2, num3;
     char op1, op2;
     int intake;
 } input;
+
+typedef enum {
+    PRIORITY_SAME = 1,   
+    PRIORITY_LEFT = 2,   
+    PRIORITY_RIGHT = 3   
+} Priority;
+
+
 
 input GetInput(){
     input ui  = {0};  
@@ -21,6 +31,8 @@ input GetInput(){
         }
     return ui;}
 
+
+
 double calc(double a, double b, char op, int *err){   
     *err = 0;
     switch (op) {
@@ -35,30 +47,36 @@ double calc(double a, double b, char op, int *err){
         return a / b;
     default: printf("Bad op!"); 
         *err = 1;
-        return 0;}}
+        return 0;}
+    }
 
-int check(char op1, char op2) {
-    int val1 = 0;
-    int val2 = 0;
 
-    if (op1 == '+' || op1 == '-') val1 = 1;
-    if (op2 == '+' || op2 == '-') val2 = 1;
-    if (op1 == '/' || op1 == '*') val1 = 2;
-    if (op2 == '/' || op2 == '*') val2 = 2;
-    if (val1 == 0 || val2 == 0) return 0;
-    if (val1 == val2) return 1;
-    if (val1 > val2) return 2;
+
+
+Priority check(char op1, char op2) {
+    int val1 = 1;
+    int val2 = 1;
+
+    if (op1 == '*' || op1 == '/') val1 = 2;
+    if (op2 == '*' || op2 == '/') val2 = 2;
+
+    if (val1 == val2) return PRIORITY_SAME;
     
-    else {return 3;}}
+    else if (val1 > val2) return PRIORITY_LEFT; 
+    
+    else return PRIORITY_RIGHT;
+    
+}
+
 
 double Final_Calc(input data, int *err) {
     double res;
     
     if (data.intake == 3) return calc(data.num1, data.num2, data.op1, err);
     
-    int temp = check(data.op1, data.op2);
+    Priority order = check(data.op1, data.op2);
     
-    if (temp == 1 || temp == 2) {   
+    if (order == PRIORITY_SAME || order == PRIORITY_LEFT) {   
         res = calc(data.num1, data.num2, data.op1, err);
         if (*err) return 0;
         return calc(res, data.num3, data.op2, err);}
@@ -66,7 +84,8 @@ double Final_Calc(input data, int *err) {
     else {
         res = calc(data.num2, data.num3, data.op2, err);
         if (*err) return 0;
-        return calc(data.num1, res, data.op1, err);}}
+        return calc(data.num1, res, data.op1, err);}
+    }
 
 
 
