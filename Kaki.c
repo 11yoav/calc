@@ -4,9 +4,9 @@
 
 
 typedef struct {
-    int num1, num2, num3;
-    char op1, op2;
-    int intake;
+    int left_operand, middle_operand, right_operand;
+    char first_operator, second_operator;
+    int tokens_read;
 } Input;
 
 typedef enum {
@@ -18,18 +18,18 @@ typedef enum {
 
 
 Input GetInput(){
-    Input ui  = {0};  
+    Input user_input  = {0};  
 
-    ui.intake = scanf("%d %c %d", &ui.num1, &ui.op1, &ui.num2);
-    if (ui.intake != 3) return ui;
+    user_input.tokens_read = scanf("%d %c %d", &user_input.left_operand, &user_input.first_operator, &user_input.middle_operand);
+    if (user_input.tokens_read != 3) return user_input;
 
     char c = getchar(); 
     if (c != '\n' && c != EOF) {
             ungetc(c, stdin); 
-            int intake2 = scanf(" %c %d", &ui.op2, &ui.num3);
-            if (intake2 == 2) ui.intake = 5;
+            int secondary_tokens_read = scanf(" %c %d", &user_input.second_operator, &user_input.right_operand);
+            if (secondary_tokens_read == 2) user_input.tokens_read = 5;
         }
-    return ui;}
+    return user_input;}
 
 
 
@@ -53,12 +53,12 @@ double CalcFor2(double a, double b, char op, int *err){
 
 
 
-EPriority CheckPriority(char op1, char op2) {
+EPriority CheckPriority(char first_operator, char second_operator) {
     int val1 = 1;
     int val2 = 1;
 
-    if (op1 == '*' || op1 == '/') val1 = 2;
-    if (op2 == '*' || op2 == '/') val2 = 2;
+    if (first_operator == '*' || first_operator == '/') val1 = 2;
+    if (second_operator == '*' || second_operator == '/') val2 = 2;
 
     if (val1 == val2) return PRIORITY_SAME;
     
@@ -70,22 +70,22 @@ EPriority CheckPriority(char op1, char op2) {
 
 
 double FinalCalc(Input data, int *err) {
-    double res;
+    double inter_result;
     int short_intake = 3;
     
-    if (data.intake == short_intake) return CalcFor2(data.num1, data.num2, data.op1, err);
+    if (data.tokens_read == short_intake) return CalcFor2(data.left_operand, data.middle_operand, data.first_operator, err);
     
-    EPriority order = CheckPriority(data.op1, data.op2);
+    EPriority order = CheckPriority(data.first_operator, data.second_operator);
     
     if (order == PRIORITY_SAME || order == PRIORITY_LEFT) {   
-        res = CalcFor2(data.num1, data.num2, data.op1, err);
+        inter_result = CalcFor2(data.left_operand, data.middle_operand, data.first_operator, err);
         if (*err) return 0;
-        return CalcFor2(res, data.num3, data.op2, err);}
+        return CalcFor2(inter_result, data.right_operand, data.second_operator, err);}
     
     else {
-        res = CalcFor2(data.num2, data.num3, data.op2, err);
+        inter_result = CalcFor2(data.middle_operand, data.right_operand, data.second_operator, err);
         if (*err) return 0;
-        return CalcFor2(data.num1, res, data.op1, err);}
+        return CalcFor2(data.left_operand, inter_result, data.first_operator, err);}
     }
 
 
@@ -93,9 +93,9 @@ double FinalCalc(Input data, int *err) {
 int main() {
     int err = 0; 
     Input myData = GetInput();
-    if (myData.intake < 3)  return 1;
-    double Fres = FinalCalc(myData, &err);
+    if (myData.tokens_read < 3)  return 1;
+    double finale_result = FinalCalc(myData, &err);
     if (err) return 1;
-    printf("Result: %d\n", (int)round(Fres));
+    printf("Result: %d\n", (int)round(finale_result));
     return 0;
 }   
