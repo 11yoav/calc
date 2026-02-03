@@ -1,21 +1,6 @@
 #include <stdio.h>
 #include <math.h>
-
-
-
-typedef struct {
-    int left_operand, middle_operand, right_operand;
-    char first_operator, second_operator;
-    int tokens_read;
-} Input;
-
-typedef enum {
-    PRIORITY_SAME = 1,   
-    PRIORITY_LEFT = 2,   
-    PRIORITY_RIGHT = 3   
-} EPriority;
-
-
+#include "ForKaki.h"
 
 Input GetInput(){
     Input user_input  = {0};  
@@ -33,59 +18,51 @@ Input GetInput(){
 
 
 
-double CalcFor2(double a, double b, char op, int *err){   
-    *err = 0;
-    switch (op) {
-    case '+': return a + b;
-    case '-': return a - b;
-    case '*': return a * b;   
-    case '/': if (b == 0) {
+double ClacFor2Num(double left_operand, double right_operand, char operator, int *err){   
+    *err = CALC_SUCCESS;
+    switch (operator) {
+    case '+': return left_operand + right_operand;
+    case '-': return left_operand - right_operand;
+    case '*': return left_operand * right_operand;   
+    case '/': if (right_operand == 0) {
         fprintf(stderr, "Error: no division by zero!\n");
-        *err = 1;
-        return 0;}
+       *err = CALC_ERROR;
+        return CALC_RETURN_VAL;}
             
-        return a / b;
-    default: fprintf(stderr, "Error: '%c' is an invalid operator\n", op);
-        *err = 1;
-        return 0;}
-    }
+        return left_operand / right_operand;
+    default: fprintf(stderr, "Error: '%c' is an invalid operator\n", operator);
+        *err = CALC_ERROR;
+        return CALC_RETURN_VAL;
+    }}
 
 
 
 
-EPriority CheckPriority(char first_operator, char second_operator) {
-    int val1 = 1;
-    int val2 = 1;
+Priority CheckPriority(char first_operator, char second_operator) {
+    int val1 = (first_operator == '*' || first_operator == '/') ? 2 : 1;
+    int val2 = (second_operator == '*' || second_operator == '/') ? 2 : 1;
 
-    if (first_operator == '*' || first_operator == '/') val1 = 2;
-    if (second_operator == '*' || second_operator == '/') val2 = 2;
-
-    if (val1 == val2) return PRIORITY_SAME;
-    
-    else if (val1 > val2) return PRIORITY_LEFT; 
-    
-    else return PRIORITY_RIGHT;
-    
+    if (val1 == val2) return PRECEDENCE_EQUAL;
+    return (val1 > val2) ? PRECEDENCE_LEFT_FIRST : PRECEDENCE_RIGHT_FIRST;
 }
 
 
 double FinalCalc(Input data, int *err) {
     double inter_result;
-    int short_intake = 3;
     
-    if (data.tokens_read == short_intake) return CalcFor2(data.left_operand, data.middle_operand, data.first_operator, err);
+    if (data.tokens_read == INTAKE_SINGLE_OPERATOR) return CalcFor2Num(data.left_operand, data.middle_operand, data.first_operator, err);
     
-    EPriority order = CheckPriority(data.first_operator, data.second_operator);
+    Priority order = CheckPriority(data.first_operator, data.second_operator);
     
-    if (order == PRIORITY_SAME || order == PRIORITY_LEFT) {   
-        inter_result = CalcFor2(data.left_operand, data.middle_operand, data.first_operator, err);
-        if (*err) return 0;
-        return CalcFor2(inter_result, data.right_operand, data.second_operator, err);}
+    if (order == PRECEDENCE_EQUAL || order == PRECEDENCE_LEFT_FIRST) {   
+        inter_result = CalcFor2Num(data.left_operand, data.middle_operand, data.first_operator, err);
+        if (*err == CALC_ERROR) return CALC_RETURN_VAL;
+        return CalcFor2Num(inter_result, data.right_operand, data.second_operator, err);}
     
     else {
-        inter_result = CalcFor2(data.middle_operand, data.right_operand, data.second_operator, err);
-        if (*err) return 0;
-        return CalcFor2(data.left_operand, inter_result, data.first_operator, err);}
+        inter_result = CalcFor2Num(data.middle_operand, data.right_operand, data.second_operator, err);
+        if (*err == CALC_ERROR) return CALC_RETURN_VAL;
+        return CalcFor2Num(data.left_operand, inter_result, data.first_operator, err);}
     }
 
 
