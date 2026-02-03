@@ -18,7 +18,7 @@ Input GetInput(){
 
 
 
-double ClacFor2Num(double left_operand, double right_operand, char operator, int *err){   
+double CalcFor2Num(double left_operand, double right_operand, char operator, int *err){   
     *err = CALC_SUCCESS;
     switch (operator) {
     case '+': return left_operand + right_operand;
